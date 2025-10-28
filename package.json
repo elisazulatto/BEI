@@ -1,0 +1,15 @@
+{
+  "name": "be-i",
+  "version": "1.0.0",
+  "description": "API para gestión de productos y carritos de compra",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js",
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
