@@ -6,33 +6,96 @@ class Product {
         this.title = title;
         this.description = description;
         this.code = code;
-        this.status = Boolean;
-        this.category = String;
-        this.thumbnail = thumbnail;
+        this.price = price;
+        this.status = status !== undefined ? status : true;
+        this.stock = stock;
+        this.category = category;
+        this.thumbnails = thumbnails || [];
     }
 
-
 }
 
-function addNewProduct(product, fileOfProducts, stock = 0) {
-    const prod = new Product(product.title, product.description, product.price, stock, product.img)
-    fs.writeFile("listOfProducts.txt", JSON.stringify(prod))
-        .then(() => console.log("Product added"))
-        .catch(() => console.log("Error adding product"))
-}
-
-function getProductById(id, fileOfProducts) {
-
-
+async function getAllProducts(fileOfProducts) {
     try {
-        const listOfProducts = fs.readFile(fileOfProducts),
-        const productById = listOfProducts.find((product) => product.id === id)
-        return productById
+        const data = await fs.readFile(fileOfProducts, 'utf-8');
+        return JSON.parse(data);
     } catch (error) {
-        console.log("Error getting product by id")
-        return "Error getting product by id"
+        if (error.code === 'ENOENT') {
+            return [];
+        }
+        console.log("Error reading products:", error.message);
+        return [];
     }
-
 }
 
-export { Product, getProductById, addNewProduct };
+async function addNewProduct(productData, fileOfProducts) {
+    try {
+        const products = await getAllProducts(fileOfProducts);
+
+        const newProduct = new Product(
+            productData.title,
+            productData.description,
+            productData.code,
+            productData.price,
+            productData.status,
+            productData.stock,
+            productData.category,
+            productData.thumbnails
+        );
+
+        products.push(newProduct);
+
+        await fs.writeFile(fileOfProducts, JSON.stringify(products, null, 2));
+
+        return newProduct;
+    } catch (error) {
+        console.log("Error adding product:", error.message);
+        throw error;
+    }
+}
+
+async function getProductById(id, fileOfProducts) {
+    try {
+        const products = await getAllProducts(fileOfProducts);
+        const product = products.find((p) => p.id === id);
+        return product || null;
+    } catch (error) {
+        console.log("Error getting product by id");
+        return null;
+    }
+}
+
+async function updateProduct(pid, updatedData, fileOfProducts) {
+    try {
+        const products = await getAllProducts(fileOfProducts);
+
+        const index = products.getProductById(pid);
+
+        //Actualizar sin tocar el id
+        const { id, ...dataToUpdate } = updatedData;
+        products[index] = { ...products[index], ...dataToUpdate };
+
+        await fs.writeFile(fileOfProducts, JSON.stringify(products, null, 2));
+
+        return products[index];
+    } catch (error) {
+        console.log("Error updating product:", error.message);
+        throw error;
+    }
+}
+async function deleteProduct(pid, fileOfProducts) {
+    try {
+        const products = await getAllProducts(fileOfProducts);
+        const productToDelete = await getProductById(pid);
+
+        const productsNew = products.spice(pid, 1);
+        await fs.writeFile(fileOfProducts, JSON.stringify(productsNew, null, 2))
+
+        return productsNew;
+    } catch (error) {
+        console.log("Error deleting product");
+        throw error;
+    }
+}
+
+export { Product, getAllProducts, getProductById, addNewProduct, updateProduct, deleteProduct };
