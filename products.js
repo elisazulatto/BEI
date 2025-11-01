@@ -1,24 +1,24 @@
 import fs from 'fs/promises';
 
 class Product {
-    constructor(title, description, price, stock, img) {
-        this.id = Math.random();
-        this.title = string;
-        this.description = string;
-        this.price = Number;
-        this.stock = Number;
+    constructor(title, description, code, price, status, stock, category, thumbnails) {
+        this.id = Math.random().toString(36).substr(2, 9); // ID único alfanumérico
+        this.title = title;
+        this.description = description;
         this.code = code;
         this.status = Boolean;
         this.category = String;
         this.thumbnail = thumbnail;
     }
 
-    addNewProduct() {
-        fs.writeFile("listOfProducts.txt", JSON.stringify(this))
-            .then(() => console.log("Product added"))
-            .catch(() => console.log("Error adding product"))
-    }
 
+}
+
+function addNewProduct(product, fileOfProducts, stock = 0) {
+    const prod = new Product(product.title, product.description, product.price, stock, product.img)
+    fs.writeFile("listOfProducts.txt", JSON.stringify(prod))
+        .then(() => console.log("Product added"))
+        .catch(() => console.log("Error adding product"))
 }
 
 function getProductById(id, fileOfProducts) {
@@ -35,4 +35,4 @@ function getProductById(id, fileOfProducts) {
 
 }
 
-export { Product, getProductById };
+export { Product, getProductById, addNewProduct };
