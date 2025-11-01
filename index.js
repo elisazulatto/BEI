@@ -1,8 +1,10 @@
 import { server, startServer } from './servidor-nativo-node.js';
 import productsRouter from './routes/products.router.js';
+import cartsRouter from './routes/carts.router.js';
 
 // Configurar rutas
 server.use('/api/products', productsRouter);
+server.use('/api/carts', cartsRouter);
 
 // Ruta raíz
 server.get('/', (req, res) => {

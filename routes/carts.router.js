@@ -1,0 +1,37 @@
+import express from 'express';
+import { getCartById, createCart, addProductToCart } from '../carts.js';
+
+const router = express.Router();
+const carts_file = 'carts.json'; // Archivo donde se guardan los carritos
+
+router.post('/', async (req, res) => {
+    try {
+        const newCart = await createCart(carts_file);
+        res.json({ status: 'success', payload: newCart });
+    } catch (error) {
+        res.json({ status: 'error', message: error.message });
+    }
+});
+
+router.get('/:cid', async (req, res) => {
+    try {
+        const { cid } = req.params;
+        const cart = await getCartById(cid, carts_file);
+        res.json({ status: 'success', payload: cart.products });
+    } catch (error) {
+        res.json({ status: 'error', message: error.message });
+    }
+});
+
+router.post('/:cid/product/:pid', async (req, res) => {
+    try {
+        const { cid, pid } = req.params;
+        const updatedCart = await addProductToCart(cid, pid, carts_file);
+        res.json({ status: 'success', payload: updatedCart });
+    } catch (error) {
+        res.json({ status: 'error', message: error.message });
+    }
+});
+
+export default router;
+
