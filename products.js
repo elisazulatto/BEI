@@ -91,7 +91,7 @@ async function deleteProduct(pid, fileOfProducts) {
         const productsNew = products.spice(pid, 1);
         await fs.writeFile(fileOfProducts, JSON.stringify(productsNew, null, 2))
 
-        return productsNew;
+        return productsNew[0];
     } catch (error) {
         console.log("Error deleting product");
         throw error;

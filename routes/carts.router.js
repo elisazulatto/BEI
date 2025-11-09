@@ -7,9 +7,10 @@ const carts_file = 'carts.json'; // Archivo donde se guardan los carritos
 router.post('/', async (req, res) => {
     try {
         const newCart = await createCart(carts_file);
-        res.json({ status: 'success', payload: newCart });
+        console.log('Solicitud POST recibida a /');
+        res.status(201).json({ status: 'success', payload: newCart });
     } catch (error) {
-        res.json({ status: 'error', message: error.message });
+        res.status(500).json({ status: 'error', message: error.message });
     }
 });
 
@@ -17,9 +18,14 @@ router.get('/:cid', async (req, res) => {
     try {
         const { cid } = req.params;
         const cart = await getCartById(cid, carts_file);
+
+        if (!cart) {
+            return res.status(404).json({ status: 'error', message: 'Cart not found' });
+        }
+
         res.json({ status: 'success', payload: cart.products });
     } catch (error) {
-        res.json({ status: 'error', message: error.message });
+        res.status(500).json({ status: 'error', message: error.message });
     }
 });
 
@@ -27,9 +33,14 @@ router.post('/:cid/product/:pid', async (req, res) => {
     try {
         const { cid, pid } = req.params;
         const updatedCart = await addProductToCart(cid, pid, carts_file);
+
+        if (!updatedCart) {
+            return res.status(404).json({ status: 'error', message: 'Cart not found' });
+        }
+
         res.json({ status: 'success', payload: updatedCart });
     } catch (error) {
-        res.json({ status: 'error', message: error.message });
+        res.status(500).json({ status: 'error', message: error.message });
     }
 });
 

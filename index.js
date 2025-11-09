@@ -6,8 +6,9 @@ import cartsRouter from './routes/carts.router.js';
 server.use('/api/products', productsRouter);
 server.use('/api/carts', cartsRouter);
 
-// Ruta raíz
+// Ruta raíz: esto es lo que va a llamar si yo hago un localhost:8080
 server.get('/', (req, res) => {
+    console.log('Solicitud recibida desde el navegador en la ruta raíz "/"');
     res.json({ message: 'API de gestión de productos y carritos' });
 });
 
