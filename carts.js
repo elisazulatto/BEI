@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 
 class Cart {
     constructor() {
-        this.id = Math.random().toString(36).substring(2, 11); // ID único alfanumérico
+        this.id = Math.random().toString(36).substr(2, 9); // ID único alfanumérico
         this.products = [];
     }
 }

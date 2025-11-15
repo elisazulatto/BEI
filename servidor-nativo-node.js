@@ -9,7 +9,7 @@ server.use(express.json());
 
 export function startServer(PORT) {
     server.listen(PORT, () => {
-        console.log(`Our server is running as expected on port ${PORT}`);
+        console.log(`Our server is running as expected on port ${PORT}`);//este callback solo se llama si el puerto pudo abrirse correctamente
     });
 }
 

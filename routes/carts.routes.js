@@ -8,7 +8,6 @@ router.post('/', async (req, res) => {
     try {
         console.log('Se hizo un POST de cart');
         const newCart = await createCart(carts_file);
-        console.log('Solicitud POST recibida a /');
         res.status(201).json({ status: 'success', payload: newCart });
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });
@@ -23,24 +22,8 @@ router.get('/:cid', async (req, res) => {
         if (!cart) {
             return res.status(404).json({ status: 'error', message: 'Cart not found' });
         }
-
-        res.json({ status: 'success', payload: cart.products });
         console.log('Producto by id encontrado')
-    } catch (error) {
-        res.status(500).json({ status: 'error', message: error.message });
-    }
-});
-
-router.post('/:cid/product/:pid', async (req, res) => {
-    try {
-        const { cid, pid } = req.params;
-        const updatedCart = await addProductToCart(cid, pid, carts_file);
-
-        if (!updatedCart) {
-            return res.status(404).json({ status: 'error', message: 'Cart not found' });
-        }
-
-        res.json({ status: 'success', payload: updatedCart });
+        res.json({ status: 'success', payload: cart.products });
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });
     }

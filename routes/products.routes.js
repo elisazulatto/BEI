@@ -66,5 +66,20 @@ router.delete('/:pid', async (req, res) => {
     }
 });
 
+//agregar producto por id al carrito, con el id del carrito 
+router.post('/:cid/product/:pid', async (req, res) => {
+    try {
+        const { cid, pid } = req.params;
+        const updatedCart = await addProductToCart(cid, pid, carts_file);
+
+        if (!updatedCart) {
+            return res.status(404).json({ status: 'error', message: 'Cart not found' });
+        }
+
+        res.json({ status: 'success', payload: updatedCart });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
 export default router;
 
