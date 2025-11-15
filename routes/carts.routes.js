@@ -2,10 +2,11 @@ import express from 'express';
 import { getCartById, createCart, addProductToCart } from '../carts.js';
 
 const router = express.Router();
-const carts_file = 'carts.json'; // Archivo donde se guardan los carritos
+const carts_file = 'carts.txt'; // Archivo donde se guardan los carritos
 
 router.post('/', async (req, res) => {
     try {
+        console.log('Se hizo un POST de cart');
         const newCart = await createCart(carts_file);
         console.log('Solicitud POST recibida a /');
         res.status(201).json({ status: 'success', payload: newCart });
@@ -24,6 +25,7 @@ router.get('/:cid', async (req, res) => {
         }
 
         res.json({ status: 'success', payload: cart.products });
+        console.log('Producto by id encontrado')
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });
     }

@@ -2,7 +2,7 @@ import express from 'express';
 import { getAllProducts, getProductById, addNewProduct, updateProduct, deleteProduct } from '../products.js';
 
 const router = express.Router();
-const products_file = 'products.json'; // Archivo donde se guardan los productos
+const products_file = 'products.txt'; // Archivo donde se guardan los productos
 
 router.get('/', async (req, res) => {
     try {
@@ -25,6 +25,7 @@ router.get('/:pid', async (req, res) => {
 
 router.post('/', async (req, res) => {
     try {
+        console.log('Se hizo un POST de product')
         const { title, description, code, price, status, stock, category, thumbnails } = req.body;
 
         const newProduct = await addNewProduct({

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "4qrfddv9g",
+    "title": "titulo",
+    "description": "algo",
+    "price": 11.23,
+    "status": "ok",
+    "stock": 2,
+    "category": "something",
+    "thumbnails": []
+  }
+]
