@@ -1,0 +1,9 @@
+[
+  {
+    "id": "z145w32gj",
+    "price": null,
+    "status": true,
+    "stock": null,
+    "thumbnails": []
+  }
+]
