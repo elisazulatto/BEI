@@ -29,7 +29,7 @@ export const createProduct = async (req, res, next) => {
 export const getProduct = async (req, res, next) => {
     try {
         const products = await getAllProducts(products_file);
-        res.json({ status: 'success', payload: products });
+        res.render("products", { products })
     } catch (error) {
         next(error);
     }
