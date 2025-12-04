@@ -1,20 +1,23 @@
 import express from 'express';
-import { addProductToACart, createProduct, deleteProduct, getProduct, getProductById, updateProducts } from '../controllers/products.controllers.js';
+import { createProduct, deleteProduct, getProduct, getProductById, updateProducts } from '../controllers/products.controllers.js';
 
 const router = express.Router();
 
+// POST /api/products - Crear un nuevo producto
 router.post('/', createProduct);
 
+// GET /api/products - Obtener todos los productos (con filtros, paginación y ordenamiento)
+// Query params: limit, page, sort (asc/desc), category, status, minPrice, maxPrice
 router.get('/', getProduct);
 
-router.get('/:pid', getProductById)
+// GET /api/products/:pid - Obtener producto por ID
+router.get('/:pid', getProductById);
 
-router.put('/:pid', updateProducts)
+// PUT /api/products/:pid - Actualizar producto
+router.put('/:pid', updateProducts);
 
-router.delete('/:pid', deleteProduct)
-
-//agregar producto por id al carrito, con el id del carrito 
-router.post('/:cid/product/:pid', addProductToACart)
+// DELETE /api/products/:pid - Eliminar producto
+router.delete('/:pid', deleteProduct);
 
 export default router;
 

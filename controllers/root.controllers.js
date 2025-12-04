@@ -1,11 +1,10 @@
 import { fileURLToPath } from 'url' // url y path son dos modulos nativos de express
 //import { dirname } from 'path'
-import { getAllProducts } from '../products.js';
+import { getAllProducts } from '../services/products.service.js';
 
 const _filename = fileURLToPath(import.meta.url)
 //const _dirname = dirname(_filename) //.... /controllers
 //const urlRoot = join(_dirname, "..", "vistas", "index.html")
-const products_file = 'products.txt';
 
 export const root = (req, res) => {
     res.render("index")
@@ -14,8 +13,8 @@ export const root = (req, res) => {
 
 export const home = async (req, res, next) => {
     try {
-        const products = await getAllProducts(products_file);
-        res.render('home', { products });
+        const result = await getAllProducts({ limit: 10, page: 1 });
+        res.render('home', { products: result.products });
     } catch (error) {
         next(error);
     }

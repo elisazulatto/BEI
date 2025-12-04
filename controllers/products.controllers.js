@@ -1,8 +1,11 @@
 //Aca controlamos la lógica 
-import { addNewProduct, getProductById as getProductByIdFromFile, updateProduct, getAllProducts, deleteProduct as deleteProductFromFile } from '../products.js';
-import { addProductToCart } from '../carts.js';
-const products_file = 'products.txt'; // Archivo donde se guardan los productos
-const carts_file = 'carts.json'; // Archivo donde se guardan los carritos
+import {
+    addNewProduct,
+    getProductById as getProductByIdService,
+    updateProduct,
+    getAllProducts,
+    deleteProduct as deleteProductService
+} from '../services/products.service.js';
 
 export const createProduct = async (req, res, next) => {
     try {
@@ -18,7 +21,7 @@ export const createProduct = async (req, res, next) => {
             stock: Number(stock),
             category,
             thumbnails: thumbnails || []
-        }, products_file);
+        });
 
         res.status(201).json({ status: 'success', payload: newProduct });
     } catch (error) {
@@ -28,8 +31,33 @@ export const createProduct = async (req, res, next) => {
 
 export const getProduct = async (req, res, next) => {
     try {
-        const products = await getAllProducts(products_file);
-        res.render("products", { products })
+        // Obtener query params para filtros, paginación y ordenamiento
+        const { limit, page, sort, category, status, minPrice, maxPrice } = req.query;
+
+        const result = await getAllProducts({
+            limit,
+            page,
+            sort,
+            category,
+            status,
+            minPrice,
+            maxPrice
+        });
+
+        // Si es una petición para renderizar vista
+        if (req.headers.accept && req.headers.accept.includes('text/html')) {
+            res.render("products", {
+                products: result.products,
+                pagination: result.pagination
+            });
+        } else {
+            // Si es una petición API, devolver JSON con paginación
+            res.json({
+                status: 'success',
+                payload: result.products,
+                ...result.pagination
+            });
+        }
     } catch (error) {
         next(error);
     }
@@ -38,7 +66,7 @@ export const getProduct = async (req, res, next) => {
 export const getProductById = async (req, res, next) => {
     try {
         const { pid } = req.params;
-        const product = await getProductByIdFromFile(pid, products_file);
+        const product = await getProductByIdService(pid);
 
         if (!product) {
             const error = new Error('Producto no encontrado');
@@ -55,7 +83,14 @@ export const getProductById = async (req, res, next) => {
 export const updateProducts = async (req, res, next) => {
     try {
         const { pid } = req.params;
-        const updatedProduct = await updateProduct(pid, req.body, products_file);
+        const updatedProduct = await updateProduct(pid, req.body);
+
+        if (!updatedProduct) {
+            const error = new Error('Producto no encontrado');
+            error.status = 404;
+            return next(error);
+        }
+
         res.json({ status: 'success', payload: updatedProduct });
     } catch (error) {
         next(error);
@@ -65,26 +100,15 @@ export const updateProducts = async (req, res, next) => {
 export const deleteProduct = async (req, res, next) => {
     try {
         const { pid } = req.params;
-        const deletedProduct = await deleteProductFromFile(pid, products_file);
+        const deletedProduct = await deleteProductService(pid);
 
-        res.json({ status: 'success', payload: deletedProduct });
-    } catch (error) {
-        next(error);
-    }
-};
-
-export const addProductToACart = async (req, res, next) => {
-    try {
-        const { cid, pid } = req.params;
-        const updatedCart = await addProductToCart(cid, pid, carts_file);
-
-        if (!updatedCart) {
-            const error = new Error('Carrito no encontrado');
+        if (!deletedProduct) {
+            const error = new Error('Producto no encontrado');
             error.status = 404;
             return next(error);
         }
 
-        res.json({ status: 'success', payload: updatedCart });
+        res.json({ status: 'success', payload: deletedProduct });
     } catch (error) {
         next(error);
     }

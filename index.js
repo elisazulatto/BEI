@@ -1,6 +1,7 @@
 import express from 'express';
 import http from "http";
 import { Server } from "socket.io";
+import mongoose from 'mongoose';
 //import { server, startServer } from './servidor-nativo-node.js';
 import productsRoutes from './routes/products.routes.js';
 import cartsRoutes from './routes/carts.routes.js';
@@ -11,6 +12,8 @@ import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
 //esto es para configurar el motor de vistas
 //app.engine("view engine","nombre fantasia") -- Le instalamos a express nuevos motores
 //app.set("nombre fantasia", motor) -- Le decimos a express cual motor usar
+
+const PORT = 8080;
 
 const app = express();
 const servidor = http.createServer(app); //le paso la capa de aplicación como parametro, la logica del servidor la esta manejando express 
@@ -46,9 +49,12 @@ app.use('/api/carts', cartsRoutes);
 // Ruta para vista de productos
 app.get('/products', async (req, res, next) => {
     try {
-        const { getAllProducts } = await import('./products.js');
-        const products = await getAllProducts('products.txt');
-        res.render('products', { products });
+        const { getAllProducts } = await import('./services/products.service.js');
+        const result = await getAllProducts(req.query);
+        res.render('products', {
+            products: result.products,
+            pagination: result.pagination
+        });
     } catch (error) {
         next(error);
     }
@@ -60,7 +66,17 @@ app.use(notFoundHandler);
 // Middleware de manejo de errores (debe ser el último)
 app.use(errorHandler);
 
-const PORT = 8080;
-servidor.listen(PORT, () => {
-    console.log('Servidor corriendo')
-})
+
+// Configuración de conexión a MongoDB
+const MONGODB_URI = 'mongodb://localhost:27017/BEI';
+
+mongoose.connect(MONGODB_URI)
+    .then(() => {
+        console.log('MongoDB conectado');
+        servidor.listen(PORT, () => {
+            console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
+        })
+    })
+    .catch((error) => {
+        console.error('Error conectando a MongoDB:', error);
+    });
