@@ -1,0 +1,313 @@
+<div class="product-detail-page">
+    <div class="header-links">
+        <a href="/products" class="back-link">← Volver a productos</a>
+        <a href="#" id="cart-link-detail" class="btn btn-cart-link" style="display: none;">Ver Carrito</a>
+    </div>
+
+    {{#if product}}
+    <div class="product-detail-container">
+        <div class="product-images">
+            {{#if product.thumbnails}}
+            {{#if product.thumbnails.length}}
+            <div class="thumbnail-gallery">
+                {{#each product.thumbnails}}
+                <img src="{{this}}" alt="Product image" class="gallery-img">
+                {{/each}}
+            </div>
+            {{else}}
+            <div class="no-image">Sin imágenes</div>
+            {{/if}}
+            {{else}}
+            <div class="no-image">Sin imágenes</div>
+            {{/if}}
+        </div>
+
+        <div class="product-info">
+            <h1>{{product.title}}</h1>
+            <p class="product-id">ID: {{product._id}}</p>
+
+            <div class="price-section">
+                <span class="price">${{product.price}}</span>
+                <span class="status-badge {{#if product.status}}available{{else}}unavailable{{/if}}">
+                    {{#if product.status}}Disponible{{else}}No disponible{{/if}}
+                </span>
+            </div>
+
+            <div class="product-details">
+                <div class="detail-item">
+                    <strong>Código:</strong> {{product.code}}
+                </div>
+                {{#if product.category}}
+                <div class="detail-item">
+                    <strong>Categoría:</strong> {{product.category}}
+                </div>
+                {{/if}}
+                {{#if product.stock}}
+                <div class="detail-item">
+                    <strong>Stock disponible:</strong> {{product.stock}} unidades
+                </div>
+                {{/if}}
+                {{#if product.description}}
+                <div class="detail-item description">
+                    <strong>Descripción:</strong>
+                    <p>{{product.description}}</p>
+                </div>
+                {{/if}}
+            </div>
+
+            <div class="product-actions">
+                <button onclick="addToCart('{{product._id}}')" class="btn btn-add-cart-large">
+                    Agregar al Carrito
+                </button>
+            </div>
+        </div>
+    </div>
+    {{else}}
+    <div class="error-message">
+        <p>Producto no encontrado</p>
+        <a href="/products" class="btn">Volver a productos</a>
+    </div>
+    {{/if}}
+</div>
+
+<script>
+    // Mostrar link al carrito si existe
+    document.addEventListener('DOMContentLoaded', function () {
+        const cartId = localStorage.getItem('cartId');
+        if (cartId) {
+            const cartLink = document.getElementById('cart-link-detail');
+            if (cartLink) {
+                cartLink.href = `/carts/${cartId}`;
+                cartLink.style.display = 'inline-block';
+            }
+        }
+    });
+
+    async function addToCart(productId) {
+        try {
+            let cartId = localStorage.getItem('cartId');
+
+            if (!cartId) {
+                const response = await fetch('/api/carts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                cartId = data.payload._id;
+                localStorage.setItem('cartId', cartId);
+
+                // Actualizar links del carrito
+                if (typeof updateCartNavLink === 'function') {
+                    updateCartNavLink();
+                }
+                const cartLink = document.getElementById('cart-link-detail');
+                if (cartLink) {
+                    cartLink.href = `/carts/${cartId}`;
+                    cartLink.style.display = 'inline-block';
+                }
+            }
+
+            const addResponse = await fetch(`/api/carts/${cartId}/product/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (addResponse.ok) {
+                alert('Producto agregado al carrito exitosamente');
+            } else {
+                alert('Error al agregar producto al carrito');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error al agregar producto al carrito');
+        }
+    }
+</script>
+
+<style>
+    .product-detail-page {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .header-links {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .back-link {
+        display: inline-block;
+        color: #3498db;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .back-link:hover {
+        text-decoration: underline;
+    }
+
+    .btn-cart-link {
+        background-color: #9b59b6;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+    }
+
+    .btn-cart-link:hover {
+        background-color: #8e44ad;
+    }
+
+    .product-detail-container {
+        background: white;
+        border-radius: 8px;
+        padding: 30px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+    }
+
+    .product-images {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .thumbnail-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+    }
+
+    .gallery-img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+
+    .no-image {
+        padding: 60px;
+        text-align: center;
+        background: #f5f5f5;
+        border-radius: 8px;
+        color: #999;
+    }
+
+    .product-info h1 {
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 32px;
+    }
+
+    .product-id {
+        color: #666;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .price-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 30px;
+    }
+
+    .price {
+        font-size: 36px;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .status-badge.available {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-badge.unavailable {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .product-details {
+        margin-bottom: 30px;
+    }
+
+    .detail-item {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-item strong {
+        color: #333;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .detail-item.description p {
+        color: #555;
+        line-height: 1.6;
+        margin-top: 10px;
+    }
+
+    .product-actions {
+        margin-top: 30px;
+    }
+
+    .btn-add-cart-large {
+        width: 100%;
+        padding: 15px;
+        background-color: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .btn-add-cart-large:hover {
+        background-color: #229954;
+    }
+
+    .error-message {
+        text-align: center;
+        padding: 60px;
+        background: white;
+        border-radius: 8px;
+    }
+
+    .error-message p {
+        font-size: 24px;
+        color: #e74c3c;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .product-detail-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

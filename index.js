@@ -34,7 +34,16 @@ app.use(express.static("public")); //este middleware ya viene preparado por el m
 //esa linea dice que por ejemplo si me hacen un pedido con metodo GET y la ruta es /index.css (ej) lo busco en la carpeta pubic, si lo encuentro lo devuelvo y si no mando un 404
 
 
-app.engine('handlebars', engine()); //aca le decimos que handlebars en nuestro diccionario significa engine()
+// Configurar handlebars con helpers
+const hbs = engine({
+    helpers: {
+        isEqual: function (a, b) {
+            return a === b;
+        }
+    }
+});
+
+app.engine('handlebars', hbs); //aca le decimos que handlebars en nuestro diccionario significa engine()
 app.set('view engine', 'handlebars');
 app.set('views', './views'); // Configurar la carpeta de vistas
 
@@ -50,11 +59,51 @@ app.use('/api/carts', cartsRoutes);
 app.get('/products', async (req, res, next) => {
     try {
         const { getAllProducts } = await import('./services/products.service.js');
-        const result = await getAllProducts(req.query);
+        const protocol = req.protocol;
+        const host = req.get('host');
+        // Para las vistas, usar rutas relativas
+        const baseUrl = '/products';
+        const result = await getAllProducts(req.query, baseUrl);
         res.render('products', {
             products: result.products,
-            pagination: result.pagination
+            pagination: result.pagination,
+            query: req.query.query,
+            sort: req.query.sort
         });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Ruta para vista de detalle de producto
+app.get('/products/:pid', async (req, res, next) => {
+    try {
+        const { getProductById } = await import('./services/products.service.js');
+        const { pid } = req.params;
+        const product = await getProductById(pid);
+
+        if (!product) {
+            return res.render('product-detail', { product: null });
+        }
+
+        res.render('product-detail', { product });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Ruta para vista de carrito
+app.get('/carts/:cid', async (req, res, next) => {
+    try {
+        const { getCartById } = await import('./services/carts.service.js');
+        const { cid } = req.params;
+        const cart = await getCartById(cid);
+
+        if (!cart) {
+            return res.render('cart', { cart: null });
+        }
+
+        res.render('cart', { cart });
     } catch (error) {
         next(error);
     }

@@ -4,6 +4,7 @@ import {
     addProductToCart,
     removeProductFromCart,
     updateProductQuantity,
+    updateCartProducts,
     clearCart,
     deleteCart,
     getAllCarts
@@ -117,6 +118,31 @@ export const clearCartController = async (req, res, next) => {
         }
 
         res.json({ status: 'success', payload: clearedCart });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const updateCartProductsController = async (req, res, next) => {
+    try {
+        const { cid } = req.params;
+        const { products } = req.body;
+
+        if (!Array.isArray(products)) {
+            const error = new Error('El campo products debe ser un arreglo');
+            error.status = 400;
+            return next(error);
+        }
+
+        const updatedCart = await updateCartProducts(cid, products);
+
+        if (!updatedCart) {
+            const error = new Error('Carrito no encontrado');
+            error.status = 404;
+            return next(error);
+        }
+
+        res.json({ status: 'success', payload: updatedCart });
     } catch (error) {
         next(error);
     }

@@ -32,17 +32,19 @@ export const createProduct = async (req, res, next) => {
 export const getProduct = async (req, res, next) => {
     try {
         // Obtener query params para filtros, paginación y ordenamiento
-        const { limit, page, sort, category, status, minPrice, maxPrice } = req.query;
+        const { limit, page, sort, query } = req.query;
+
+        // Construir la URL base para los links de paginación
+        const protocol = req.protocol;
+        const host = req.get('host');
+        const baseUrl = `${protocol}://${host}/api/products`;
 
         const result = await getAllProducts({
             limit,
             page,
             sort,
-            category,
-            status,
-            minPrice,
-            maxPrice
-        });
+            query
+        }, baseUrl);
 
         // Si es una petición para renderizar vista
         if (req.headers.accept && req.headers.accept.includes('text/html')) {
@@ -51,11 +53,18 @@ export const getProduct = async (req, res, next) => {
                 pagination: result.pagination
             });
         } else {
-            // Si es una petición API, devolver JSON con paginación
+            // Si es una petición API, devolver JSON con formato específico
             res.json({
                 status: 'success',
                 payload: result.products,
-                ...result.pagination
+                totalPages: result.pagination.totalPages,
+                prevPage: result.pagination.prevPage,
+                nextPage: result.pagination.nextPage,
+                page: result.pagination.page,
+                hasPrevPage: result.pagination.hasPrevPage,
+                hasNextPage: result.pagination.hasNextPage,
+                prevLink: result.pagination.prevLink,
+                nextLink: result.pagination.nextLink
             });
         }
     } catch (error) {

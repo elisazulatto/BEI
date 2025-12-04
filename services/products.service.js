@@ -1,40 +1,39 @@
 import Product from '../models/product.model.js';
 
 // Obtener todos los productos con filtros, paginación y ordenamiento
-async function getAllProducts(queryParams = {}) {
+async function getAllProducts(queryParams = {}, baseUrl = '/api/products') {
     try {
         const {
             limit = 10,
             page = 1,
             sort,
-            category,
-            status,
-            minPrice,
-            maxPrice
+            query
         } = queryParams;
 
         // Construir filtros
         const filter = {};
 
-        if (category) {
-            filter.category = category;
-        }
-
-        if (status !== undefined) {
-            filter.status = status === 'true' || status === true;
-        }
-
-        if (minPrice || maxPrice) {
-            filter.price = {};
-            if (minPrice) filter.price.$gte = Number(minPrice);
-            if (maxPrice) filter.price.$lte = Number(maxPrice);
+        // El parámetro 'query' puede ser para filtrar por categoría o disponibilidad
+        if (query) {
+            const queryLower = query.toLowerCase();
+            // Verificar si es un filtro de disponibilidad
+            if (query === 'true' || query === 'false') {
+                filter.status = query === 'true';
+            } else if (queryLower === 'disponible' || queryLower === 'available') {
+                filter.status = true;
+            } else if (queryLower === 'no disponible' || queryLower === 'unavailable' || queryLower === 'no disponible') {
+                filter.status = false;
+            } else {
+                // Si no es disponibilidad, buscar por categoría (case-insensitive)
+                filter.category = { $regex: query, $options: 'i' };
+            }
         }
 
         // Construir opciones de consulta
         const options = {
             limit: parseInt(limit),
             skip: (parseInt(page) - 1) * parseInt(limit),
-            lean: false
+            lean: true // Usar lean para obtener objetos planos que Handlebars puede usar
         };
 
         // Agregar ordenamiento
@@ -47,18 +46,42 @@ async function getAllProducts(queryParams = {}) {
         const products = await Product.find(filter, null, options);
         const total = await Product.countDocuments(filter);
         const totalPages = Math.ceil(total / parseInt(limit));
+        const currentPage = parseInt(page);
+
+        // Convertir _id a string para que Handlebars pueda usarlo
+        const productsWithStringId = products.map(product => ({
+            ...product,
+            _id: product._id.toString()
+        }));
+
+        // Construir query string para los links
+        const buildQueryString = (pageNum) => {
+            const params = new URLSearchParams();
+            const limitNum = parseInt(limit);
+            if (limitNum && limitNum !== 10) params.append('limit', limitNum);
+            if (pageNum && pageNum !== 1) params.append('page', pageNum);
+            if (sort) params.append('sort', sort);
+            if (query) params.append('query', query);
+            const queryString = params.toString();
+            return queryString ? `?${queryString}` : '';
+        };
+
+        const prevPage = currentPage > 1 ? currentPage - 1 : null;
+        const nextPage = currentPage < totalPages ? currentPage + 1 : null;
 
         return {
-            products,
+            products: productsWithStringId,
             pagination: {
                 total,
                 limit: parseInt(limit),
-                page: parseInt(page),
+                page: currentPage,
                 totalPages,
-                hasPrevPage: parseInt(page) > 1,
-                hasNextPage: parseInt(page) < totalPages,
-                prevPage: parseInt(page) > 1 ? parseInt(page) - 1 : null,
-                nextPage: parseInt(page) < totalPages ? parseInt(page) + 1 : null
+                hasPrevPage: currentPage > 1,
+                hasNextPage: currentPage < totalPages,
+                prevPage,
+                nextPage,
+                prevLink: prevPage ? `${baseUrl}${buildQueryString(prevPage)}` : null,
+                nextLink: nextPage ? `${baseUrl}${buildQueryString(nextPage)}` : null
             }
         };
     } catch (error) {

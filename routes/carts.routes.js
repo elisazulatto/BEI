@@ -6,6 +6,7 @@ import {
     addProductToCartController,
     removeProductFromCartController,
     updateProductQuantityController,
+    updateCartProductsController,
     clearCartController,
     deleteCartController
 } from '../controllers/carts.controllers.js';
@@ -24,14 +25,18 @@ router.get('/:cid', getCartByIdController);
 // POST /api/carts/:cid/product/:pid - Agregar producto al carrito
 router.post('/:cid/product/:pid', addProductToCartController);
 
-// PUT /api/carts/:cid/product/:pid - Actualizar cantidad de producto en el carrito
+// PUT /api/carts/:cid - Actualizar todos los productos del carrito
+// Body: { products: [{ product: ObjectId, quantity: number }] }
+router.put('/:cid', updateCartProductsController);
+
+// PUT /api/carts/:cid/products/:pid - Actualizar cantidad de producto en el carrito
 // Body: { quantity: number }
-router.put('/:cid/product/:pid', updateProductQuantityController);
+router.put('/:cid/products/:pid', updateProductQuantityController);
 
-// DELETE /api/carts/:cid/product/:pid - Eliminar producto del carrito
-router.delete('/:cid/product/:pid', removeProductFromCartController);
+// DELETE /api/carts/:cid/products/:pid - Eliminar producto del carrito
+router.delete('/:cid/products/:pid', removeProductFromCartController);
 
-// DELETE /api/carts/:cid - Vaciar carrito
+// DELETE /api/carts/:cid - Eliminar todos los productos del carrito (vaciar carrito)
 router.delete('/:cid', clearCartController);
 
 // DELETE /api/carts/:cid/delete - Eliminar carrito completamente

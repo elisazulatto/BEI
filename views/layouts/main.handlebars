@@ -11,7 +11,16 @@
 <body>
     <header>
         <div class="container">
-            <h1>BE CoderHouse - API</h1>
+            <div class="header-content">
+                <h1>BE CoderHouse - API</h1>
+                <nav class="navbar">
+                    <a href="/" class="nav-link">Inicio</a>
+                    <a href="/products" class="nav-link">Productos</a>
+                    <a href="#" id="cart-nav-link" class="nav-link cart-link" onclick="goToCart(event)">
+                        🛒 Carrito
+                    </a>
+                </nav>
+            </div>
         </div>
     </header>
     <main class="container">
@@ -22,6 +31,51 @@
     --}}
     <script src="/socket.io/socket.io.js"></script>
     <script src="index.js"></script>
+    <script>
+        // Función global para actualizar el link del carrito en el navbar
+        function updateCartNavLink() {
+            const cartId = localStorage.getItem('cartId');
+            const cartNavLink = document.getElementById('cart-nav-link');
+            if (cartId && cartNavLink) {
+                cartNavLink.href = `/carts/${cartId}`;
+            }
+        }
+
+        // Función para ir al carrito, creando uno si no existe
+        async function goToCart(event) {
+            event.preventDefault();
+            let cartId = localStorage.getItem('cartId');
+
+            if (!cartId) {
+                try {
+                    // Crear un nuevo carrito
+                    const response = await fetch('/api/carts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        cartId = data.payload._id;
+                        localStorage.setItem('cartId', cartId);
+                    }
+                } catch (error) {
+                    console.error('Error al crear carrito:', error);
+                    alert('Error al crear el carrito');
+                    return;
+                }
+            }
+
+            // Redirigir al carrito
+            window.location.href = `/carts/${cartId}`;
+        }
+
+        // Actualizar link del carrito al cargar la página
+        document.addEventListener('DOMContentLoaded', function () {
+            updateCartNavLink();
+        });
+    </script>
 </body>
 
 </html>

@@ -15,8 +15,23 @@ async function getAllCarts() {
 // Obtener carrito por ID
 async function getCartById(cid) {
     try {
-        const cart = await Cart.findById(cid).populate('products.product');
-        return cart || null;
+        const cart = await Cart.findById(cid).populate('products.product').lean();
+        if (!cart) {
+            return null;
+        }
+        // Convertir _id a string y asegurar que los productos estén poblados correctamente
+        const cartObj = {
+            ...cart,
+            _id: cart._id.toString(),
+            products: cart.products.map(item => ({
+                ...item,
+                product: item.product ? {
+                    ...item.product,
+                    _id: item.product._id ? item.product._id.toString() : item.product._id
+                } : null
+            }))
+        };
+        return cartObj;
     } catch (error) {
         console.log("Error getting cart by id:", error.message);
         return null;
@@ -147,6 +162,39 @@ async function clearCart(cid) {
     }
 }
 
+// Actualizar todos los productos del carrito
+async function updateCartProducts(cid, products) {
+    try {
+        const cart = await Cart.findById(cid);
+        if (!cart) {
+            return null; // Carrito no encontrado
+        }
+
+        // Validar que todos los productos existan
+        for (const item of products) {
+            const product = await Product.findById(item.product);
+            if (!product) {
+                throw new Error(`Producto con ID ${item.product} no encontrado`);
+            }
+            if (!item.quantity || item.quantity < 1) {
+                throw new Error('La cantidad debe ser mayor a 0');
+            }
+        }
+
+        // Actualizar todos los productos del carrito
+        cart.products = products.map(item => ({
+            product: item.product,
+            quantity: item.quantity
+        }));
+
+        const updatedCart = await cart.save();
+        return await Cart.findById(updatedCart._id).populate('products.product');
+    } catch (error) {
+        console.log("Error updating cart products:", error.message);
+        throw error;
+    }
+}
+
 // Eliminar carrito
 async function deleteCart(cid) {
     try {
@@ -165,6 +213,7 @@ export {
     addProductToCart,
     removeProductFromCart,
     updateProductQuantity,
+    updateCartProducts,
     clearCart,
     deleteCart
 };

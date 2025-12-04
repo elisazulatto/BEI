@@ -40,7 +40,8 @@ const productSchema = new mongoose.Schema({
         default: []
     }
 }, {
-    timestamps: true // Agrega createdAt y updatedAt automáticamente
+    timestamps: true, // Agrega createdAt y updatedAt automáticamente
+    collection: 'productos' // Especificar el nombre de la colección en MongoDB
 });
 
 const Product = mongoose.model('Product', productSchema);
